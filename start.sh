@@ -4,6 +4,8 @@ if [ ! -e /etc/ssh/ssh_host_rsa_key ]; then
   dpkg-reconfigure openssh-server
 fi
 
+chown -R gogs /home/gogs/
+
 /usr/sbin/sshd -D &
 
 sed -i "s/^DB_TYPE =.*/DB_TYPE = ${DB_TYPE}/" /etc/gogs/conf/app.ini
