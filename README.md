@@ -8,3 +8,8 @@ environment variables:
 * `DB_NAME` - the name of the database to use
 * `DB_USER` - the user to connect to the specified database as
 * `DB_PASSWD` - the password to connect to the database as
+
+For development, you might want to disable certifcate validation for webhooks. To
+do this use:
+
+* `SKIP_TLS_VERIFY` - set to `true` to disable webhook certificate validation (default: `false`)
