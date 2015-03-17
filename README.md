@@ -8,6 +8,7 @@ This image runs Gogs with SSH & web access. You can configure Gogs via the follo
 -	`DB_NAME` - the name of the database to use
 -	`DB_USER` - the user to connect to the specified database as
 -	`DB_PASSWD` - the password to connect to the database as
+-	`ROOT_URL` - the public URL to be used to access the service (e.g. http://gogs.fabric8.local/)
 -	`DOMAIN` - the domain of the server (default: `gogs.fabric8.local`)
 -	`TASK_INTERVAL` - the interval in minutes between webhooks being invoked (default: 0)
 
