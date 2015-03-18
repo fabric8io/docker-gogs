@@ -27,5 +27,6 @@ sed -i "s/^DOMAIN =.*/DOMAIN = ${DOMAIN:-gogs.fabric8.local}/" ${INI_FILE}
 sed -i "s/^HTTP_PORT =.*/HTTP_PORT = ${HTTP_PORT:-3000}/" ${INI_FILE}
 sed -i "s|^ROOT_URL =.*|ROOT_URL = ${ROOT_URL:-http://gogs.fabric8.local/}|" ${INI_FILE}
 
+sed -i "s|^INSTALL_LOCK =.*|INSTALL_LOCK = true|" ${INI_FILE}
 
 exec sudo -u git -H sh -c "cd /opt/gogs; exec ./gogs web"
