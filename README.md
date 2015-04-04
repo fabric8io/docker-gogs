@@ -3,7 +3,7 @@ Gogs (Go Git Service) Docker Image
 
 This image runs Gogs with SSH & web access. You can configure Gogs via the following environment variables:
 
--	`DB_TYPE` - `mysql` or `postgresql`
+-	`DB_TYPE` - `mysql` or `postgres`
 -	`DB_HOST` - the database server to use, e.g. 127.0.0.1:3306
 -	`DB_NAME` - the name of the database to use
 -	`DB_USER` - the user to connect to the specified database as
