@@ -31,11 +31,13 @@ sed -i "s|^ROOT_URL =.*|ROOT_URL = ${ROOT_URL:-${PROTOCOL:-http}://${DOMAIN:-gog
 
 sed -i "s|^INSTALL_LOCK =.*|INSTALL_LOCK = true|" ${INI_FILE}
 
-mkdir -p /opt/gogs/custom/https
-cd /opt/gogs/custom/https
-CERT_HOST=${CERT_HOST:-${DOMAIN-gogs.fabric8.local}}
-echo "Creating cert for host ${CERT_HOST}"
-/opt/gogs/gogs cert -host=${CERT_HOST},${DOMAIN:-gogs.fabric8.local},$(hostname -i),localhost
-chown git /opt/gogs/custom/https/*
+if [ "${PROTOCOL}" == "https" ]; then
+  mkdir -p /opt/gogs/custom/https
+  cd /opt/gogs/custom/https
+  CERT_HOST=${CERT_HOST:-${DOMAIN-gogs.fabric8.local}}
+  echo "Creating cert for host ${CERT_HOST}"
+  /opt/gogs/gogs cert -host=${CERT_HOST},${DOMAIN:-gogs.fabric8.local},$(hostname -i),localhost
+  chown git /opt/gogs/custom/https/*
+fi
 
 exec sudo -u git -H sh -c "cd /opt/gogs; exec ./gogs web"
