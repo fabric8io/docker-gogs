@@ -21,6 +21,7 @@ ADD build/gogs-wrapper /opt/gogs/gogs-wrapper
 ADD supervisord.conf /opt/gogs/supervisord.conf
 ADD start.sh /start.sh
 
+ENV GOGS_SECURITY__INSTALL_LOCK true
 ENV GOGS_DATABASE__DB_TYPE sqlite3
 ENV GOGS_RUN_USER git
 ENV GOGS_RUN_MODE prod
