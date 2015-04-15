@@ -45,9 +45,8 @@ func init() {
 
 func main() {
   runAsUser := defaultUser
-  if len(os.Getenv("GOGS_USER")) > 0 {
-    runAsUser = os.Getenv("GOGS_USER")
-    os.Setenv("GOGS_USER", "")
+  if len(os.Getenv("GOGS_RUN_USER")) > 0 {
+    runAsUser = os.Getenv("GOGS_RUN_USER")
   }
 
   if os.Getenv("GOGS_SERVER__PROTOCOL") == "https" {

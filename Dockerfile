@@ -22,6 +22,8 @@ ADD supervisord.conf /opt/gogs/supervisord.conf
 ADD start.sh /start.sh
 
 ENV GOGS_DATABASE__DB_TYPE sqlite3
+ENV GOGS_RUN_USER git
+ENV GOGS_RUN_MODE prod
 
 # Expose our port
 EXPOSE 22 3000

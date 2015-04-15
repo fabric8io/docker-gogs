@@ -1,18 +1,51 @@
 Gogs (Go Git Service) Docker Image
 ==================================
 
-This image runs Gogs with SSH & web access. You can configure Gogs via the following environment variables:
+This image runs Gogs with SSH & web access.
 
--	`DB_TYPE` - `mysql` or `postgres`
--	`DB_HOST` - the database server to use, e.g. 127.0.0.1:3306
--	`DB_NAME` - the name of the database to use
--	`DB_USER` - the user to connect to the specified database as
--	`DB_PASSWD` - the password to connect to the database as
--	`ROOT_URL` - the public URL to be used to access the service (e.g. http://gogs.fabric8.local/)
--	`DOMAIN` - the domain of the server (default: `gogs.fabric8.local`)
--	`TASK_INTERVAL` - the interval in minutes between webhooks being invoked (default: 0)
+To configure Gogs, you can either mount a config file at `/opt/gogs/custom/conf/app.ini`
+or use environment variables to configure all options. Specifying a config file
+will prevent environment variables from taking effect: options are not merged.
 
--	For development, you might want to disable certifcate validation for webhooks. To do this use:
+All options in the [config file](http://gogs.io/docs/advanced/configuration_cheat_sheet.html)
+are configurable via environment variables using a special format for the name:
 
--	`SKIP_TLS_VERIFY` - set to `true` to disable webhook certificate validation (default: `false`)
+```
+GOGS_SECTION_NAME__KEY_NAME
+```
 
+All environment variables prefixed with `GOGS_` will be used to create the
+`/opt/gogs/custom/conf/app.ini` file. The section name is optional, but the
+key name is required. Notice the double underscore between `SECTION_NAME` &
+`KEY_NAME`. For example, to override the user to run Gogs as
+(`RUN_USER`) you can specify:
+
+```
+GOGS_RUN_USER=git
+```
+
+Or to override the database type (`DB_TYPE` key in `[database]` section) you can
+specify:
+
+```
+GOGS_DATABASE__DB_TYPE=mysql
+```
+
+If a section contains a `.` (invalid env var for bash) then replace `.` with an `_`,
+e.g. use `GOGS_OAUTH_GOOGLE__ENABLED` for the `oauth.google` section `ENABLED` key.
+
+Reference config links:
+
+- No section (prefix: `GOGS_*`): http://gogs.io/docs/advanced/configuration_cheat_sheet.html#overall
+- Repository section (prefix: `GOGS_REPOSITORY__*`): http://gogs.io/docs/advanced/configuration_cheat_sheet.html#repository
+- Server section (prefix: `GOGS_SERVER__*`): http://gogs.io/docs/advanced/configuration_cheat_sheet.html#server
+- Database section (prefix: `GOGS_DATABASE__*`): http://gogs.io/docs/advanced/configuration_cheat_sheet.html#database
+- Security section (prefix: `GOGS_SECURITY__*`): http://gogs.io/docs/advanced/configuration_cheat_sheet.html#security
+- Service section (prefix: `GOGS_SERVICE__*`): http://gogs.io/docs/advanced/configuration_cheat_sheet.html#service
+- Webhook section (prefix: `GOGS_WEBHOOK__*`): http://gogs.io/docs/advanced/configuration_cheat_sheet.html#webhook
+- Mailer section (prefix: `GOGS_MAILER__*`): http://gogs.io/docs/advanced/configuration_cheat_sheet.html#mailer
+- OAuth section (prefix: `GOGS_OAUTH__*`): http://gogs.io/docs/advanced/configuration_cheat_sheet.html#oauth
+- Cache section (prefix: `GOGS_CACHE__*`): http://gogs.io/docs/advanced/configuration_cheat_sheet.html#cache
+- Session section (prefix: `GOGS_SESSION__*`): http://gogs.io/docs/advanced/configuration_cheat_sheet.html#session
+- Picture section (prefix: `GOGS_PICTURE__*`): http://gogs.io/docs/advanced/configuration_cheat_sheet.html#picture
+- Log section (prefix: `GOGS_LOG__*`): http://gogs.io/docs/advanced/configuration_cheat_sheet.html#log
