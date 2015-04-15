@@ -4,7 +4,7 @@ ENV GOGS_VERSION 0.6.1
 
 RUN yum install -y curl openssh-server sqlite unzip git python-setuptools && \
     yum clean all && \
-    easy_install supervisor supervisor-stdout && \
+    easy_install supervisor && \
     rm -f /etc/ssh/ssh_host_*_key_* && \
     mkdir /var/run/sshd
 
