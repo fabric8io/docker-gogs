@@ -1,6 +1,8 @@
 Gogs (Go Git Service) Docker Image
 ==================================
 
+Latest version: 0.6.1 ([fabric8/gogs:0.6.1](https://registry.hub.docker.com/u/fabric8/gogs/))
+
 This image runs Gogs with SSH & web access.
 
 To configure Gogs, you can either mount a config file at `/opt/gogs/custom/conf/app.ini`
