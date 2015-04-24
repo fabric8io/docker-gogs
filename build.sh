@@ -1,4 +1,5 @@
 #!/bin/bash
 
-go build -o build/gogs-wrapper
-docker build --no-cache -t gogs .
+go get github.com/tools/godep
+godep go build -o build/gogs-wrapper
+docker build -t gogs .

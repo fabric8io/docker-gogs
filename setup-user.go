@@ -51,17 +51,17 @@ func SetupUser(u string) error {
 }
 
 func getUser(u string, defaultExecUser *user.ExecUser) (*user.ExecUser, error) {
-	passwdFile, err := user.GetPasswdFile()
+	passwdFile, err := user.GetPasswd()
 	if err != nil {
 		return nil, err
 	}
 
-	groupFile, err := user.GetGroupFile()
+	groupFile, err := user.GetGroup()
 	if err != nil {
 		return nil, err
 	}
 
-	execUser, err := user.GetExecUserFile(u, defaultExecUser, passwdFile, groupFile)
+	execUser, err := user.GetExecUser(u, defaultExecUser, passwdFile, groupFile)
 	if err != nil {
 		return nil, fmt.Errorf("get supplementary groups %s", err)
 	}

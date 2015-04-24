@@ -1,0 +1,16 @@
+{
+	"ImportPath": "github.com/fabric8io/docker-gogs",
+	"GoVersion": "go1.4.2",
+	"Deps": [
+		{
+			"ImportPath": "github.com/docker/libcontainer/system",
+			"Comment": "v1.4.0-446-gae812bd",
+			"Rev": "ae812bdca78084dc322037225d170e1883521d87"
+		},
+		{
+			"ImportPath": "github.com/docker/libcontainer/user",
+			"Comment": "v1.4.0-446-gae812bd",
+			"Rev": "ae812bdca78084dc322037225d170e1883521d87"
+		}
+	]
+}

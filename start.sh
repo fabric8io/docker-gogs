@@ -12,4 +12,6 @@ sed -i \
 
 echo AllowUsers git >> /etc/ssh/sshd_config
 
+chown -R ${GOGS_RUN_USER}:${GOGS_RUN_USER} /opt/gogs/data /opt/gogs/custom/conf/ /opt/gogs/log
+
 exec supervisord -c /opt/gogs/supervisord.conf
