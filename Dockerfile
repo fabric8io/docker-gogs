@@ -1,6 +1,7 @@
 FROM centos:7
 
-ENV GOGS_VERSION 0.6.1
+#ENV GOGS_VERSION 0.6.1
+ENV GOGS_VERSION 0.6.2-openshift-m1
 
 RUN yum install -y curl openssh-server sqlite unzip git python-setuptools && \
     yum clean all && \
@@ -8,9 +9,17 @@ RUN yum install -y curl openssh-server sqlite unzip git python-setuptools && \
     rm -f /etc/ssh/ssh_host_*_key_* && \
     mkdir /var/run/sshd
 
-RUN curl -L -o /tmp/gogs.zip https://github.com/gogits/gogs/releases/download/v${GOGS_VERSION}/linux_amd64.zip && \
+#RUN curl -L -o /tmp/gogs.zip https://github.com/gogits/gogs/releases/download/v${GOGS_VERSION}/linux_amd64.zip && \
+RUN curl -L -o /tmp/gogs.zip https://github.com/fabric8io/gogs/releases/download/v${GOGS_VERSION}/linux_amd64.zip && \
     cd /opt && unzip /tmp/gogs.zip && \
     rm -rf /tmp/gogs.zip /opt/__MACOSX $(find /opt/gogs -name .DS_Store) $(find /opt/gogs -name .idea)
+
+
+## TODO lets use a local build
+#COPY gogs /opt/gogs/gogs
+#RUN rm -rf /opt/gogs/templates /opt/gogs/public
+#COPY templates /opt/gogs/templates
+#COPY public /opt/gogs/public
 
 RUN chmod +x /opt/gogs/gogs && \
     useradd -mr git && \
