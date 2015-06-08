@@ -51,3 +51,14 @@ Reference config links:
 - Session section (prefix: `GOGS_SESSION__*`): http://gogs.io/docs/advanced/configuration_cheat_sheet.html#session
 - Picture section (prefix: `GOGS_PICTURE__*`): http://gogs.io/docs/advanced/configuration_cheat_sheet.html#picture
 - Log section (prefix: `GOGS_LOG__*`): http://gogs.io/docs/advanced/configuration_cheat_sheet.html#log
+
+## Creating an initial admin user
+
+By default, Gogs comes without a default admin user. This is great for security, but not great
+when you're trying to integrate automated setups. This Docker image allows you to create a default
+admin user by specifying some environment variables:
+
+- `ADMIN_USER_CREATE`: Should an admin user be created (default: `true`)
+- `ADMIN_USER_NAME`: Login for admin user (default: `gogsadmin`)
+- `ADMIN_USER_PASSWORD`: Password for admin user (default: `admin123`)
+- `ADMIN_USER_EMAIL`: Email address for admin user (default: `gogs@fabric8.local`)

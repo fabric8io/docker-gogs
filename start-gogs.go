@@ -17,164 +17,206 @@
 package main
 
 import (
-  "bufio"
-  "fmt"
-  "log"
-  "os"
-  "os/exec"
-  "path/filepath"
-  "regexp"
-  "runtime"
-  "strings"
-  "syscall"
+	"bufio"
+	"fmt"
+	"log"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"regexp"
+	"runtime"
+	"strconv"
+	"strings"
+	"syscall"
+
+	"github.com/go-xorm/xorm"
+	"github.com/gogits/gogs/models"
+	"github.com/gogits/gogs/modules/setting"
+	"github.com/gogits/gogs/routers"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
 const (
-  gogsBinary      = "/opt/gogs/gogs"
-  configFile      = "/opt/gogs/custom/conf/app.ini"
-  defaultUser     = "git"
-  defaultCertFile = "/opt/gogs/custom/https/cert.pem"
-  defaultKeyFile  = "/opt/gogs/custom/https/key.pem"
+	gogsBinary      = "/opt/gogs/gogs"
+	configFile      = "/opt/gogs/custom/conf/app.ini"
+	defaultUser     = "git"
+	defaultCertFile = "/opt/gogs/custom/https/cert.pem"
+	defaultKeyFile  = "/opt/gogs/custom/https/key.pem"
 )
 
 func init() {
-  // make sure we only have one process and that it runs on the main thread (so that ideally, when we Exec, we keep our user switches and stuff)
-  runtime.GOMAXPROCS(1)
-  runtime.LockOSThread()
+	// make sure we only have one process and that it runs on the main thread (so that ideally, when we Exec, we keep our user switches and stuff)
+	runtime.GOMAXPROCS(1)
+	runtime.LockOSThread()
 }
 
 func main() {
-  runAsUser := defaultUser
-  if len(os.Getenv("GOGS_RUN_USER")) > 0 {
-    runAsUser = os.Getenv("GOGS_RUN_USER")
-  }
+	runAsUser := defaultUser
+	if len(os.Getenv("GOGS_RUN_USER")) > 0 {
+		runAsUser = os.Getenv("GOGS_RUN_USER")
+	}
 
-  if os.Getenv("GOGS_SERVER__PROTOCOL") == "https" {
-    createCerts()
-  }
+	if os.Getenv("GOGS_SERVER__PROTOCOL") == "https" {
+		createCerts()
+	}
 
-  if _, err := os.Stat(configFile); os.IsNotExist(err) {
-    writeConfigFromEnvVars()
-  }
+	if _, err := os.Stat(configFile); os.IsNotExist(err) {
+		writeConfigFromEnvVars()
+	}
 
-  user, err := getUser(runAsUser, nil)
-  if err != nil {
-    log.Fatal(err)
-  }
-  if user == nil {
-    log.Fatalf("Unknown user %s", runAsUser)
-  }
-  os.Chown(configFile, user.Uid, user.Gid)
+	user, err := getUser(runAsUser, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if user == nil {
+		log.Fatalf("Unknown user %s", runAsUser)
+	}
+	os.Chown(configFile, user.Uid, user.Gid)
 
-  // clear HOME so that SetupUser will set it
-  os.Setenv("HOME", "")
+	// clear HOME so that SetupUser will set it
+	os.Setenv("HOME", "")
 
-  err = SetupUser(runAsUser)
-  if err != nil {
-    log.Fatalf("error: failed switching to %q: %v", runAsUser, err)
-  }
+	err = SetupUser(runAsUser)
+	if err != nil {
+		log.Fatalf("error: failed switching to %q: %v", runAsUser, err)
+	}
 
-  os.Chdir(filepath.Dir(gogsBinary))
+	os.Chdir(filepath.Dir(gogsBinary))
 
-  name, err := exec.LookPath(gogsBinary)
-  if err != nil {
-    log.Fatalf("error: %v", err)
-  }
+	log.Println("Creating admin user: ", os.Getenv("ADMIN_USER_CREATE"))
 
-  err = syscall.Exec(name, []string{name, "web"}, os.Environ())
-  if err != nil {
-    log.Fatalf("error: exec failed: %v", err)
-  }
+	if val, err := strconv.ParseBool(os.Getenv("ADMIN_USER_CREATE")); err == nil && val {
+		setting.CustomConf = "custom/conf/app.ini"
+		routers.GlobalInit()
+		log.Printf("Custom path: %s\n", setting.CustomPath)
+
+		// Set test engine.
+		var x *xorm.Engine
+		if err := models.NewTestEngine(x); err != nil {
+			log.Fatal("err: ", err)
+		}
+
+		models.LoadModelsConfig()
+		models.SetEngine()
+
+		// Create admin account.
+		if err := models.CreateUser(&models.User{
+			Name:     os.Getenv("ADMIN_USER_NAME"),
+			Email:    os.Getenv("ADMIN_USER_EMAIL"),
+			Passwd:   os.Getenv("ADMIN_USER_PASSWORD"),
+			IsAdmin:  true,
+			IsActive: true,
+		}); err != nil {
+			if err != models.ErrUserAlreadyExist {
+				log.Fatalf("error: %v", err)
+			} else {
+				log.Println("Admin account already exist")
+			}
+		} else {
+			log.Println("Admin account created: ", os.Getenv("ADMIN_USER_NAME"))
+		}
+	}
+
+	name, err := exec.LookPath(gogsBinary)
+	if err != nil {
+		log.Fatalf("error: %v", err)
+	}
+
+	err = syscall.Exec(name, []string{name, "web"}, os.Environ())
+	if err != nil {
+		log.Fatalf("error: exec failed: %v", err)
+	}
 
 }
 
 func createCerts() {
-  basedir := filepath.Dir(defaultCertFile)
-  if _, err := os.Stat(basedir); os.IsNotExist(err) {
-    if err := os.MkdirAll(basedir, 0755); err != nil {
-      log.Fatal(err)
-    }
-  }
-  if _, err := os.Stat(defaultCertFile); os.IsExist(err) {
-    return
-  }
-  os.Chdir(basedir)
-  certHosts := []string{"localhost", "127.0.0.1"}
-  if hostname, err := os.Hostname(); err == nil {
-    certHosts = append(certHosts, hostname)
-  }
-  if len(os.Getenv("GOGS_SERVER__ROOT_URL")) > 0 {
-    certHosts = append(certHosts, os.Getenv("GOGS_SERVER__ROOT_URL"))
-  }
-  cmd := exec.Command("/opt/gogs/gogs", "cert", fmt.Sprintf("%s=%s", "-host", strings.Join(certHosts, ",")))
-  cmd.Stdout = os.Stdout
-  cmd.Stderr = os.Stderr
-  err := cmd.Run()
-  if err != nil {
-    log.Fatal(err)
-  }
-  os.Chmod("cert.pem", 0644)
-  os.Chmod("key.pem", 0644)
+	basedir := filepath.Dir(defaultCertFile)
+	if _, err := os.Stat(basedir); os.IsNotExist(err) {
+		if err := os.MkdirAll(basedir, 0755); err != nil {
+			log.Fatal(err)
+		}
+	}
+	if _, err := os.Stat(defaultCertFile); os.IsExist(err) {
+		return
+	}
+	os.Chdir(basedir)
+	certHosts := []string{"localhost", "127.0.0.1"}
+	if hostname, err := os.Hostname(); err == nil {
+		certHosts = append(certHosts, hostname)
+	}
+	if len(os.Getenv("GOGS_SERVER__ROOT_URL")) > 0 {
+		certHosts = append(certHosts, os.Getenv("GOGS_SERVER__ROOT_URL"))
+	}
+	cmd := exec.Command("/opt/gogs/gogs", "cert", fmt.Sprintf("%s=%s", "-host", strings.Join(certHosts, ",")))
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	err := cmd.Run()
+	if err != nil {
+		log.Fatal(err)
+	}
+	os.Chmod("cert.pem", 0644)
+	os.Chmod("key.pem", 0644)
 }
 
 func writeConfigFromEnvVars() {
-  basedir := filepath.Dir(configFile)
-  if _, err := os.Stat(basedir); os.IsNotExist(err) {
-    if err := os.MkdirAll(basedir, 0755); err != nil {
-      log.Fatal(err)
-    }
-  }
+	basedir := filepath.Dir(configFile)
+	if _, err := os.Stat(basedir); os.IsNotExist(err) {
+		if err := os.MkdirAll(basedir, 0755); err != nil {
+			log.Fatal(err)
+		}
+	}
 
-  f, err := os.Create(configFile)
-  if err != nil {
-    log.Fatal(err)
-  }
-  defer f.Close()
+	f, err := os.Create(configFile)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
 
-  w := bufio.NewWriter(f)
+	w := bufio.NewWriter(f)
 
-  gogsConfig := make(map[string][]string)
+	gogsConfig := make(map[string][]string)
 
-  validConfigRE := regexp.MustCompile(`^GOGS_(?:([^=]+)__)?([^=]+)=(.+)$`)
+	validConfigRE := regexp.MustCompile(`^GOGS_(?:([^=]+)__)?([^=]+)=(.+)$`)
 
-  env := os.Environ()
-  for _, envVar := range env {
-    matches := validConfigRE.FindStringSubmatch(envVar)
-    if matches != nil {
-      section := strings.Replace(strings.ToLower(matches[1]), "_", ".", -1)
-      key := strings.ToUpper(matches[2])
-      value := matches[3]
-      gogsConfig[section] =
-        append(gogsConfig[section], fmt.Sprintf("%s=%s", key, value))
-    }
-  }
+	env := os.Environ()
+	for _, envVar := range env {
+		matches := validConfigRE.FindStringSubmatch(envVar)
+		if matches != nil {
+			section := strings.Replace(strings.ToLower(matches[1]), "_", ".", -1)
+			key := strings.ToUpper(matches[2])
+			value := matches[3]
+			gogsConfig[section] =
+				append(gogsConfig[section], fmt.Sprintf("%s=%s", key, value))
+		}
+	}
 
-  if _, ok := gogsConfig[""]; ok {
-    for _, value := range gogsConfig[""] {
-      writeLine(w, value)
-    }
+	if _, ok := gogsConfig[""]; ok {
+		for _, value := range gogsConfig[""] {
+			writeLine(w, value)
+		}
 
-    writeEmptyLine(w)
-    delete(gogsConfig, "")
-  }
+		writeEmptyLine(w)
+		delete(gogsConfig, "")
+	}
 
-  for section, values := range gogsConfig {
-    writeLine(w, fmt.Sprintf("[%s]", section))
-    for _, value := range values {
-      writeLine(w, value)
-    }
-    writeEmptyLine(w)
-  }
+	for section, values := range gogsConfig {
+		writeLine(w, fmt.Sprintf("[%s]", section))
+		for _, value := range values {
+			writeLine(w, value)
+		}
+		writeEmptyLine(w)
+	}
 
-  w.Flush()
+	w.Flush()
 }
 
 func writeLine(w *bufio.Writer, value string) {
-  if _, err := w.WriteString(fmt.Sprintf("%s\n", value)); err != nil {
-    log.Fatal(err)
-  }
+	if _, err := w.WriteString(fmt.Sprintf("%s\n", value)); err != nil {
+		log.Fatal(err)
+	}
 }
 
 func writeEmptyLine(w *bufio.Writer) {
-  writeLine(w, "")
+	writeLine(w, "")
 }

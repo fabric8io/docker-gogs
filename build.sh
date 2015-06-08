@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -euf -o pipefail
+
 go get github.com/tools/godep
-godep go build -o build/gogs-wrapper
+godep go build -tags="sqlite" -a -o build/gogs-wrapper
 docker build -t gogs .
