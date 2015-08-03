@@ -108,7 +108,7 @@ func main() {
 			IsAdmin:  true,
 			IsActive: true,
 		}); err != nil {
-			if err != models.ErrUserAlreadyExist {
+			if !models.IsErrUserAlreadyExist(err) {
 				log.Fatalf("error: %v", err)
 			} else {
 				log.Println("Admin account already exist")
