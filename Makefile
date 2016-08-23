@@ -3,10 +3,10 @@ docker: sshkeygen ssh-keygen
 	docker build -t gogs .
 
 ssh-keygen: sshkeyfingerprint.go
-	CGO_ENABLED=0 go build --ldflags '-extldflags "-static" -s -w' -o ssh-keygen sshkeyfingerprint.go
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build --ldflags '-extldflags "-static" -s -w' -o ssh-keygen sshkeyfingerprint.go
 
 sshkeygen: sshkeygen.go
-	CGO_ENABLED=0 go build --ldflags '-extldflags "-static" -s -w' -o sshkeygen sshkeygen.go
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build --ldflags '-extldflags "-static" -s -w' -o sshkeygen sshkeygen.go
 
 .PHONY: clean
 clean:
