@@ -11,6 +11,12 @@ mkdir ${HOME}/git
 
 cd "$(dirname $0)"
 
+(
+  mkdir -p data/ssh/ || true
+  cd data/ssh/
+  ../../sshkeygen
+)
+
 sed -i "s/RUN_USER = git/RUN_USER = ${USER}/" custom/conf/app.ini
 
 exec ./gogs web -c custom/conf/app.ini
