@@ -14,9 +14,9 @@ cd "$(dirname $0)"
 (
   mkdir -p data/ssh/ || true
   cd data/ssh/
-  ../../sshkeygen
+  ../../ssh-hostkeygen
 )
 
-sed -i "s/RUN_USER = git/RUN_USER = ${USER}/" custom/conf/app.ini
+export GOGS_RUN_USER=${USER:-git}
 
-exec ./gogs web -c custom/conf/app.ini
+exec ./start-gogs
