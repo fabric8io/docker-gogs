@@ -37,11 +37,11 @@ import (
 )
 
 const (
-	gogsBinary      = "/app/gogs/gogs"
-	configFile      = "/app/gogs/custom/conf/app.ini"
+	gogsBinary      = "/opt/gogs/gogs"
+	configFile      = "/opt/gogs/custom/conf/app.ini"
 	defaultUser     = "git"
-	defaultCertFile = "/app/gogs/custom/https/cert.pem"
-	defaultKeyFile  = "/app/gogs/custom/https/key.pem"
+	defaultCertFile = "/opt/gogs/custom/https/cert.pem"
+	defaultKeyFile  = "/opt/gogs/custom/https/key.pem"
 )
 
 func main() {
@@ -94,7 +94,7 @@ func main() {
 		log.Fatalf("error: %v", err)
 	}
 
-	err = syscall.Exec(name, []string{name, "web", "-c", configFile}, os.Environ())
+	err = syscall.Exec(name, []string{name, "web"}, os.Environ())
 	if err != nil {
 		log.Fatalf("error: exec failed: %v", err)
 	}

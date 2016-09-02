@@ -1,15 +1,25 @@
-FROM gogs/gogs:0.9.71
+FROM centos:7
 
-ENTRYPOINT ["/app/gogs/start.sh"]
+ENTRYPOINT ["/opt/gogs/start.sh"]
 
-COPY start.sh /app/gogs/start.sh
+ENV VERSION=0.9.97
 
-COPY build/ssh-hostkeygen build/start-gogs /app/gogs/
+RUN yum install -y --setopt=tsflags=nodocs epel-release && \
+    yum install -y --setopt=tsflags=nodocs nss_wrapper gettext sqlite git && \
+    yum clean all
+
+RUN cd /opt && \
+    curl -L https://cdn.gogs.io/gogs_v${VERSION}_linux_amd64.tar.gz | tar xzv
+
+COPY passwd.template /tmp/passwd.template
+COPY start.sh /opt/gogs/start.sh
+
+COPY build/ssh-hostkeygen build/start-gogs /opt/gogs/
 COPY build/ssh-keygen /usr/bin/ssh-keygen
 
-RUN mkdir -p /app/gogs/data /app/gogs/custom/conf && chmod 777 /app/gogs/data /app/gogs/custom/conf /app/gogs/conf && chmod 666 /app/gogs/conf/app.ini
+RUN mkdir -p /app/gogs/data /opt/gogs/custom/conf && chmod 777 /app/gogs/data /opt/gogs/custom /opt/gogs/custom/conf
 
-USER git
+USER 10000
 
 ENV HOME=/app/gogs/data \
     PATH=/app/gogs:$PATH \
