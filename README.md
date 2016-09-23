@@ -4,4 +4,4 @@
 On CentOS/RHEL:
 ```
 yum install -y glibc-static
-´´´
+```
