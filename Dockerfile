@@ -17,7 +17,7 @@ COPY start.sh /opt/gogs/start.sh
 COPY build/ssh-hostkeygen build/start-gogs /opt/gogs/
 COPY build/ssh-keygen /usr/bin/ssh-keygen
 
-RUN mkdir -p /app/gogs/data /opt/gogs/custom/conf && chmod 777 /app/gogs/data /opt/gogs/custom /opt/gogs/custom/conf
+RUN mkdir -p /app/gogs/data /opt/gogs/custom/conf && chmod 777 /app/gogs/data /opt/gogs/custom /opt/gogs/custom/conf && chown 10000:10000 /app/gogs/data /opt/gogs/custom /opt/gogs/custom/conf
 
 USER 10000
 
